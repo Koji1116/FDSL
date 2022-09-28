@@ -518,6 +518,7 @@ def main():
 
     try:
         for epoch in range(start_epoch, num_epochs):
+            t_start = time.time()
             if args.distributed and hasattr(loader_train.sampler, 'set_epoch'):
                 loader_train.sampler.set_epoch(epoch)
 
@@ -552,7 +553,9 @@ def main():
                         target_file = f'output/train/{args.experiment}/held-checkpoint-{epoch}.pth.tar'
                     if os.path.exists(checkpoint_file):
                         shutil.copyfile(checkpoint_file, target_file)
-
+            print('----------------------------------------------------------------------')
+            print(f'processing time : {time.time() - t_start} epoch:{epoch + 1} \n\n')
+            print('----------------------------------------------------------------------')
     except KeyboardInterrupt:
         pass
     if best_metric is not None:
@@ -677,6 +680,7 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='')
     last_idx = len(loader) - 1
     with torch.no_grad():
         for batch_idx, (input, target) in enumerate(loader):
+
             last_batch = batch_idx == last_idx
             if not args.prefetcher:
                 input = input.cuda()
@@ -715,6 +719,7 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='')
                     'Acc@5: {top5.val:>7.4f} ({top5.avg:>7.4f})'.format(
                         log_name, batch_idx, last_idx, batch_time=batch_time_m,
                         loss=losses_m, top1=top1_m, top5=top5_m))
+
 
     metrics = OrderedDict([('loss', losses_m.avg), ('top1', top1_m.avg), ('top5', top5_m.avg)])
 
